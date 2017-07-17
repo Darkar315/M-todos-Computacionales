@@ -26,25 +26,19 @@ int main(void)
 
   while (fgets(line_buffer, len, file))
   {
-    // printf("%s", line_buffer);
+    j = 0;
     split_buffer = strtok(line_buffer, delimiter);
     while (split_buffer != NULL)
     {
-      matriz[i][j - 1] = atof(split_buffer);
-      printf("%s\n", split_buffer);
+      if (j != 0)
+      {
+	matriz[i][j - 1] = atof(split_buffer);
+      }
       split_buffer = strtok(NULL, delimiter);
 
       j += 1;
     }
     i += 1;
-  }
-
-  for (i = 0; i < 10; i++)
-  {
-    for (j = 0; j < 7; j++)
-    {
-      printf("%e\n", matriz[i][j]);
-    }
   }
 
   float *x = malloc((10 * n) * sizeof(float));
@@ -58,6 +52,23 @@ int main(void)
   float *vx_05 = malloc(10 * sizeof(float));
   float *vy_05 = malloc(10 * sizeof(float));
   float *vz_05 = malloc(10 * sizeof(float));
+
+  float m_sol = matriz[0][0];
+
+  for (i = 0; i < 10; i++)
+  {
+    matriz[i][0] = matriz[i][0] / m_sol;
+  }
+
+  // Imprimir Matriz
+  for (i = 0; i < 10; i++)
+  {
+    for (j = 0; j < 7; j++)
+    {
+      printf("%f\n", matriz[i][j]);
+    }
+  }
+  // Final Imprimir Matriz
   
   return 0;
 }
