@@ -50,27 +50,35 @@ def it_tiempo(N):
     return lis
 
 t_60 = it_tiempo(Nt1)
-mat_30 = t_60[598]
-mat_60 = t_60[1196]
+mat_30 = t_60[int(Nt2 / dt)]
+mat_60 = t_60[int(Nt1 / dt)]
 
-plt.imshow(mat_30, cmap = 'gray')
-plt.title('Onda en t = 30s')
-plt.savefig('Ondas_30.png')
-plt.close()
+#plt.imshow(mat_30, cmap = 'gray')
+#plt.title('Onda en t = 30s')
+#plt.savefig('Ondas_30.png')
+#plt.close()
 
-plt.imshow(mat_60, cmap = 'gray')
-plt.title('Onda en t = 60s')
-plt.savefig('Ondas_60.png')
-plt.close()
+#plt.imshow(mat_60, cmap = 'gray')
+#plt.title('Onda en t = 60s')
+#plt.savefig('Ondas_60.png')
+#plt.close()
 
-contenedor = plt.imshow(t_60[0], cmap = 'gray')
+fig = plt.figure(figsize = (15, 15))
+contenedor = plt.imshow(t_60[0], cmap = 'hot')
+nueva_it = []
 
-fig = plt.figure()
+for i in range(len(t_60)):
+    if (i % 50 == 0):
+        nueva_it.append(t_60[i])
+        i += 1
+    else:
+        i += 1
 
 def func(i):
-    datos = t_60[i]
-    contenedor.set_array(datos)
-    return contenedor
+    datos = nueva_it[i]
+    contenedor.set_array(datos),
+    return contenedor,
 
-animation.FuncAnimation(fig, func)
-plt.show()
+anmt = animation.FuncAnimation(fig, func, np.arange(0, len(nueva_it)), interval = 200)
+anmt.save('Onda.mp4')
+plt.close()
