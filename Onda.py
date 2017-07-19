@@ -53,22 +53,25 @@ t_60 = it_tiempo(Nt1)
 mat_30 = t_60[int(Nt2 / dt)]
 mat_60 = t_60[int(Nt1 / dt)]
 
-#plt.imshow(mat_30, cmap = 'gray')
-#plt.title('Onda en t = 30s')
-#plt.savefig('Ondas_30.png')
-#plt.close()
+plt.imshow(mat_30, cmap = 'gray')
+plt.title('Onda en t = 30s')
+plt.savefig('Ondas_30.png')
+plt.close()
 
-#plt.imshow(mat_60, cmap = 'gray')
-#plt.title('Onda en t = 60s')
-#plt.savefig('Ondas_60.png')
-#plt.close()
+plt.imshow(mat_60, cmap = 'gray')
+plt.title('Onda en t = 60s')
+plt.savefig('Ondas_60.png')
+plt.close()
 
-fig = plt.figure(figsize = (15, 15))
-contenedor = plt.imshow(t_60[0], cmap = 'hot')
+fig, ax = plt.subplots()
+contenedor = plt.imshow(t_60[0], cmap = 'seismic')
 nueva_it = []
 
+ax.set_aspect('equal')
+ax.grid
+
 for i in range(len(t_60)):
-    if (i % 50 == 0):
+    if (i % 20 == 0):
         nueva_it.append(t_60[i])
         i += 1
     else:
@@ -76,7 +79,7 @@ for i in range(len(t_60)):
 
 def func(i):
     datos = nueva_it[i]
-    contenedor.set_array(datos),
+    contenedor.set_array(datos)
     return contenedor,
 
 anmt = animation.FuncAnimation(fig, func, np.arange(0, len(nueva_it)), interval = 200)
