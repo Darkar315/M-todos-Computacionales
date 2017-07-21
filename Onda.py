@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+# Creacion de variables, condiciones iniciales y limites
+
 Np = 300
 a = 0
 b = 30
@@ -30,6 +32,8 @@ u_fut = np.zeros((Np, Np))
 lis = []
 lis.append(u_0)
 
+# Funcion para la primera condicion inical y siguientes instantes en el futuro
+
 def it_tiempo(N):
     for i in range(1, (Np - 1)):
         for j in range(1, (Np - 1)):
@@ -53,15 +57,19 @@ t_60 = it_tiempo(Nt1)
 mat_30 = t_60[int(Nt2 / dt)]
 mat_60 = t_60[int(Nt1 / dt)]
 
+# Graficas de propagacion de la onda en t = 30 y t = 60
+
 plt.imshow(mat_30, cmap = 'gray')
 plt.title('Onda en t = 30s')
-plt.savefig('Ondas_30.png')
+plt.savefig('Ondas_30.pdf')
 plt.close()
 
 plt.imshow(mat_60, cmap = 'gray')
 plt.title('Onda en t = 60s')
-plt.savefig('Ondas_60.png')
+plt.savefig('Ondas_60.pdf')
 plt.close()
+
+# Animacion de la propagacion de la onda
 
 fig, ax = plt.subplots()
 contenedor = plt.imshow(t_60[0], cmap = 'seismic')
