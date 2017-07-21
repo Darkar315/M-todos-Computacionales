@@ -3,65 +3,105 @@
 #include <string.h>
 #include <math.h>
 
-// Definicion Constantes
+// DEFINICIONES
 
 #define n 91250
 #define G 39.47841760
-#define PI 3.14159
 
-// Funcion aceleracion
+// FUNCIONES
 
-void aceleracion(int i, int dn, float *ax, float *ay, float *az, float *x, float *y, float *z, float *masas)
-{
-  float factor = 0;
-  int ii;
-  int j;
-
-  int posi1 = n * ii + j;
-  int posi2 = n * i + j;
-
-  for (j = 0; j < dn; j++)
-  {
-    for (ii = 0; ii < 10; ii++)
-      {
-	if (ii != i)
-	  {
-	    factor += (G * masas[ii]) / pow(pow(x[posi1] - x[posi2], 2.0) + pow(y[posi1] - y[posi2], 2.0) + pow(z[posi1] - z[posi2], 2.0), (3.0 / 2.0));
-	  }
-      }
-  }
-
-  *ax += factor * (x[posi1] - x[posi2]);
-  *ay += factor * (y[posi1] - y[posi2]);
-  *az += factor * (z[posi1] - z[posi2]);
-}
+// Indices para la lectura de la matriz como arreglo lineal
 
 int pos(int i, int j)
 {
   return n * i + j;
 }
 
+// Aceleracion
+
+void aceleracion(int i, int k, float masas, float *ax, float *ay, float *az, float *x, float *y, float *z)
+{
+  float ax1 = *ax;
+  float ay1 = *ay;
+  float az1 = *az;
+
+  ax1 = 0;
+  ay1 = 0;
+  az1 = 0;
+  
+  int pos1;
+  int pos2;
+
+  int ii = 0;
+  float factor;
+  float p = 3 / 2;
+  
+  for(ii = 1; ii < 11; ii++)
+  {
+    if(ii != i)
+    {
+      pos1 = n * ii + k;
+      pos2 = n * i + k; 
+      factor += (G * masas) / (pow(pow(x[pos1] - x[pos2], 2) + pow(y[pos1] - y[pos2], 2) + pow(z[pos1] - z[pos2],2), p));
+    }
+    *ax = factor * (x[pos1] - x[pos2]);
+    *ay = factor * (y[pos1] - y[pos2]);
+    *az = factor * (z[pos1] - z[pos2]);
+  }
+  *ax = ax1;
+  *ay = ay1;
+  *az = az1;
+}
+
+// FUNCION MAIN
+
 int main(void)
 {
+  // Definicion de variables y constantes
+  
+  int i = 0, j = 0;
+  float dt = 1.0 / 365.0;
+
+  float ax1;
+  float ay1;
+  float az1;
+
+  float *ax = malloc(sizeof(float));
+  float *ay = malloc(sizeof(float));
+  float *az = malloc(sizeof(float));
+
+  float *x = malloc((n * 10) * sizeof(float));
+  float *y = malloc((n * 10) * sizeof(float));
+  float *z = malloc((n * 10) * sizeof(float));
+
+  float *vx = malloc((n * 10) * sizeof(float));
+  float *vy = malloc((n * 10) * sizeof(float));
+  float *vz = malloc((n * 105) * sizeof(float));
+	
+  float *vx_05 = malloc(10 * sizeof(float));
+  float *vy_05 = malloc(10 * sizeof(float));
+  float *vz_05 = malloc(10 * sizeof(float));
+
+  // Inicializacion de lectura para el archivo
+  
   FILE *file;
   file = fopen("coordinates.csv", "r");
-
   int len = 250;
+
   char line_buffer[len];
   char *split_buffer;
   const char *delimiter;
   delimiter = ",";
-    
-  float dt = 1. / 365.;
-  float *masas;
-  
-  int i = 0, j = 0;
-  double matriz[10][7];
 
+  double matriz[10][7];
+  
+  // Lectura del archivo
+  
   while (fgets(line_buffer, len, file))
   {
     j = 0;
     split_buffer = strtok(line_buffer, delimiter);
+
     while (split_buffer != NULL)
     {
       if (j != 0)
@@ -69,27 +109,25 @@ int main(void)
 	matriz[i][j - 1] = atof(split_buffer);
       }
       split_buffer = strtok(NULL, delimiter);
-
       j += 1;
-    }
+     }
     i += 1;
   }
 
-  float *x = malloc((10 * n) * sizeof(float));
-  float *y = malloc((10 * n) * sizeof(float));
-  float *z = malloc((10 * n) * sizeof(float));
+  // Cambio de unidades a unidades solares (Dividir todas las masas por la masa del sol)
 
-  float *vx = malloc((10 * n) * sizeof(float));
-  float *vy = malloc((10 * n) * sizeof(float));
-  float *vz = malloc((10 * n) * sizeof(float));
-
-  float *vx_05 = malloc(n * sizeof(float));
-  float *vy_05 = malloc(n * sizeof(float));
-  float *vz_05 = malloc(n * sizeof(float));
-
-  for (i = 0; i < 7; i ++)
+  float msol = matriz[0][0];
+  
+  for (i = 0; i < 10; i++)
   {
-    x[pos(i, 0)] = matriz[i][1];
+    matriz[i][0] = matriz[i][0] / msol;
+  }
+
+  // Incluir condiciones iniciales en variables
+
+  for (i = 0; i < 10; i++)
+  {
+    x[pos(i, 0)] = matriz[i][1];	
     y[pos(i, 0)] = matriz[i][2];
     z[pos(i, 0)] = matriz[i][3];
     vx[pos(i, 0)] = matriz[i][4];
@@ -97,53 +135,43 @@ int main(void)
     vz[pos(i, 0)] = matriz[i][6];
   }
 
-  float m_sol = matriz[0][0];
-
-  for (i = 0; i < 10; i++)
+  // Calcular velocidad media, velocidad y posicion usando la funcion de aceleracion
+  
+  for (int w = 0; w < n - 1; w++)
   {
-    matriz[i][0] = matriz[i][0] / m_sol;
-  }
-
-  /*/ Imprimir Matriz
-  for (i = 0; i < 10; i++)
-  {
-    for (j = 0; j < 7; j++)
+    for (i = 0; i < 10; i++)
     {
-      printf("%e\n", matriz[i][j]);
+      aceleracion(i, w, matriz[i][0], ax, ay, az, x, y, z);
+      ax1 = *ax;
+      ay1 = *ay;
+      az1 = *az;
+
+      vx_05[i] = vx[pos(i, w)] + 0.5 * ax1 * dt;
+      vy_05[i] = vy[pos(i, w)] + 0.5 * ay1 * dt;
+      vz_05[i] = vz[pos(i, w)] + 0.5 * az1 * dt;
+
+      x[pos(i, w + 1)] = x[pos(i, w)] + vx_05[i] * dt;
+      y[pos(i, w + 1)] = y[pos(i, w)] + vy_05[i] * dt;	
+      z[pos(i, w + 1)] = z[pos(i, w)] + vz_05[i] * dt;
+
+      *ax = ax1;
+      *ay = ay1;
+      *az = az1;
+
+      aceleracion(i, w + 1, matriz[i][0], ax, ay, az, x, y, z);
+      vx[pos(i, w+1)] = vx_05[i] + 0.5 * ax1 * dt;	
+      vy[pos(i, w+1)] = vy_05[i] + 0.5 * ay1 * dt;
+      vz[pos(i, w+1)] = vz_05[i] + 0.5 * az1 * dt;
     }
   }
-  */// Final Imprimir Matriz
 
-  for (i = 0; i < 10; i ++)
+  // Imprimir posiciones X, Y y Z para cada planeta
+  
+  for (i = 0; i < 10; i++)
   {
-    masas[i] = matriz[i][0];
-  }
-
-  float ax, ay, az;
-
-  for (j = 0; j < n; j ++)
-  {
-    ax = 0;
-    ay = 0;
-    az = 0;
-    for (i = 0; i < 10; i ++)
+    for (j = 0; j < n; j++)
     {
-      aceleracion(i, n, &ax, &ay, &az, x, y, z, masas);
-      vx_05[i] = vx[pos(i, j)] + 0.5 * ax * dt;
-      vy_05[i] = vy[pos(i, j)] + 0.5 * ay * dt;
-      vz_05[i] = vz[pos(i, j)] + 0.5 * az * dt;
-
-      x[pos(i, j + 1)] = x[pos(i, j)] + vx_05[i] * dt;
-      y[pos(i, j + 1)] = y[pos(i, j)] + vy_05[i] * dt;
-      z[pos(i, j + 1)] = z[pos(i, j)] + vz_05[i] * dt;
-    }
-    
-    for (i = 0; i < n; i ++)
-    {
-      aceleracion(i, (n + 1), &ax, &ay, &az, x, y, z, masas);
-      vx[pos(i, n + 1)] = vx_05[i] + 0.5 * ax * dt;
-      vy[pos(i, n + 1)] = vy_05[i] + 0.5 * ay * dt;
-      vz[pos(i, n + 1)] = vz_05[i] + 0.5 * ay * dt;
+      printf("%f %f %f \n", x[pos(i, j)], y[pos(i, j)], z[pos(i, j)]);
     }
   }
   return 0;
